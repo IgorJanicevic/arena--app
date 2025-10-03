@@ -1,39 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import toast, { Toaster } from "react-hot-toast";
+import { useReservations } from "./store/ReservationsContext";
 
-// Tip za rezervaciju
-type Reservation = {
-  id: string;
-  tableNumber: number;
-  reservedBy: string;
-  date: string; // ISO string
-  seats: string[];
-};
-
-const STORAGE_KEY = "reservations";
+// Tip za rezervaciju preuzet iz konteksta
 
 // --- App ---
 const App: React.FC = () => {
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const { reservations, setReservations } = useReservations();
   const [name, setName] = useState("");
   const [tableNumber, setTableNumber] = useState<number>(1);
   const [date, setDate] = useState("");
   const [activeTab, setActiveTab] = useState<"tables" | "reserve">("tables");
-
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed: Reservation[] = JSON.parse(saved);
-      const now = new Date();
-      const filtered = parsed.filter((res) => new Date(res.date) > now);
-      setReservations(filtered);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations));
-  }, [reservations]);
 
   const handleReservation = () => {
     if (!name || !date) {
@@ -41,7 +19,7 @@ const App: React.FC = () => {
       return;
     }
 
-    const newRes: Reservation = {
+    const newRes = {
       id: uuidv4(),
       tableNumber,
       reservedBy: name,
