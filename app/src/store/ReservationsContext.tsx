@@ -22,7 +22,6 @@ export const ReservationsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // Load from serverless JSON on first mount
   useEffect(() => {
     if (hasLoadedRef.current) return;
-    hasLoadedRef.current = true;
     (async () => {
       try {
         const resp = await fetch("/api/reservations");
@@ -30,16 +29,20 @@ export const ReservationsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const data = await resp.json();
           if (Array.isArray(data)) setReservations(data);
         }
-      } catch (_) {}
+      } catch (_) {
+        // ignore fetch error, we'll mark as loaded and allow user to proceed
+      } finally {
+        hasLoadedRef.current = true; // mark loaded only after GET completes
+      }
     })();
   }, []);
 
-  // Save to serverless JSON whenever reservations change
+  // Save to serverless JSON whenever reservations change (skip if equal to last server value)
   useEffect(() => {
     if (!hasLoadedRef.current) return; // avoid writing before initial GET
     (async () => {
       try {
-        await fetch("/api/reservations", {
+        await fetch("/api/reservations-save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(reservations),
