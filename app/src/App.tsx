@@ -7,7 +7,7 @@ import { useReservations } from "./store/ReservationsContext";
 
 // --- App ---
 const App: React.FC = () => {
-  const { reservations, setReservations } = useReservations();
+  const { reservations, setReservations, saveReservations } = useReservations();
   const [name, setName] = useState("");
   const [tableNumber, setTableNumber] = useState<number>(1);
   const [date, setDate] = useState("");
@@ -27,7 +27,9 @@ const App: React.FC = () => {
       seats: [],
     };
 
-    setReservations([...reservations, newRes]);
+    const next = [...reservations, newRes];
+    setReservations(next);
+    void saveReservations(next);
     setName("");
     setDate("");
 
@@ -35,13 +37,16 @@ const App: React.FC = () => {
   };
 
   const addSeat = (resId: string, person: string) => {
-    setReservations((prev) =>
-      prev.map((r) =>
+    let next: typeof reservations = reservations;
+    setReservations((prev) => {
+      next = prev.map((r) =>
         r.id === resId && r.seats.length < 5
           ? { ...r, seats: [...r.seats, person] }
           : r
-      )
-    );
+      );
+      return next;
+    });
+    void saveReservations(next);
 
     if (person.trim()) toast.success(`${person} dodat u sto!`);
   };

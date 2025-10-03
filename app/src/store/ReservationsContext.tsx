@@ -11,6 +11,7 @@ export type Reservation = {
 type ReservationsContextValue = {
   reservations: Reservation[];
   setReservations: React.Dispatch<React.SetStateAction<Reservation[]>>;
+  saveReservations: (next: Reservation[]) => Promise<void>;
 };
 
 const ReservationsContext = createContext<ReservationsContextValue | undefined>(undefined);
@@ -37,21 +38,18 @@ export const ReservationsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     })();
   }, []);
 
-  // Save to serverless JSON whenever reservations change (skip if equal to last server value)
-  useEffect(() => {
-    if (!hasLoadedRef.current) return; // avoid writing before initial GET
-    (async () => {
-      try {
-        await fetch("/api/reservations-save", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(reservations),
-        });
-      } catch (_) {}
-    })();
-  }, [reservations]);
+  const saveReservations = async (next: Reservation[]) => {
+    if (!hasLoadedRef.current) return; // ensure initial GET finished
+    try {
+      await fetch("/api/reservations-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+    } catch (_) {}
+  };
 
-  const value = useMemo(() => ({ reservations, setReservations }), [reservations]);
+  const value = useMemo(() => ({ reservations, setReservations, saveReservations }), [reservations]);
 
   return (
     <ReservationsContext.Provider value={value}>
