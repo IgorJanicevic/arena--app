@@ -1,4 +1,5 @@
-const BLOB_NAME = "reservations.json";
+const PREFIX = process.env.BLOB_PREFIX || ""; // e.g. "arena-app/prod"
+const BLOB_NAME = PREFIX ? `${PREFIX.replace(/\/+$/, "")}/reservations.json` : "reservations.json";
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
